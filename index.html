@@ -1,13 +1,40 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+import { render, screen, fireEvent } from '@testing-library/react';
+import { NudgeEngine } from '../components/NudgeEngine';
+import { AppProvider } from '../components/AppContext';
 
+describe('NudgeEngine', () => {
+  it('renders the log activity form correctly', () => {
+    render(
+      <AppProvider>
+        <NudgeEngine />
+      </AppProvider>
+    );
+    
+    expect(screen.getByText('Log Activity')).toBeInTheDocument();
+    expect(screen.getByLabelText('What did you do?')).toBeInTheDocument();
+    expect(screen.getByLabelText('Est. CO2 (kg)')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Evaluate Impact of Activity' })).toBeInTheDocument();
+  });
+
+  it('Submit button is disabled when inputs are empty', () => {
+    render(
+      <AppProvider>
+        <NudgeEngine />
+      </AppProvider>
+    );
+    
+    const submitBtn = screen.getByRole('button', { name: 'Evaluate Impact of Activity' });
+    expect(submitBtn).toBeDisabled();
+
+    const activityInput = screen.getByLabelText('What did you do?');
+    const costInput = screen.getByLabelText('Est. CO2 (kg)');
+
+    fireEvent.change(activityInput, { target: { value: 'Something' } });
+    // Still disabled because cost is missing
+    expect(submitBtn).toBeDisabled();
+
+    fireEvent.change(costInput, { target: { value: '4' } });
+    // Now enabled
+    expect(submitBtn).not.toBeDisabled();
+  });
+});
